@@ -11,7 +11,7 @@ pipeline {
         stage('Hash Update') {
             steps {
                 sh '''
-                bash -e ./bin/run-tests 
+                bash -xe ./bin/run-tests 
                 '''
             }
         }
