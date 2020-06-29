@@ -210,17 +210,21 @@ if [ -n "$SSTATE_MIRRORS" ] ; then
         echo "SSTATE_MIRRORS = 'file://.*  $SSTATE_MIRRORS/PATH \n '" >> conf/local-content.conf
 fi
 
+INIT_PYTHON=$(which python3 2>/dev/null )
+[ -z "$INIT_PYTHON" ] && INIT_PYTHON=$(which python2 2>/dev/null)
+[ -z "$INIT_PYTHON" ] && echo "Error: The SDK needs a python installed" && exit 1
+
 export -n BB_NO_NETWORK
 if [ "$MAKEDROP" != "1" ] ; then
    # Temporary waiting for proper bitbake integration: https://patchwork.openembedded.org/patch/144806/
-   RELPATH=$(python -c "from os.path import relpath; print (relpath(\"$TOPDIR/layers\",\"$(pwd)\"))")
+   RELPATH=$($INIT_PYTHON -c "from os.path import relpath; print (relpath(\"$TOPDIR/layers\",\"$(pwd)\"))")
    sed -i conf/bblayers.conf -e "s,$TOPDIR/layers/,\${TOPDIR}/$RELPATH/,"
    
    if [ "$(readlink -f setup.sh)" = "$(readlink -f $TOPDIR/setup.sh)" ] ; then
       echo "Something went wrong. Exiting to prevent overwritting setup.sh"
       $EXIT 1
    fi
-   SCRIPT_RELPATH=$(python -c "from os.path import relpath; print (relpath(\"$TOPDIR\",\"`pwd`\"))")
+   SCRIPT_RELPATH=$($INIT_PYTHON -c "from os.path import relpath; print (relpath(\"$TOPDIR\",\"`pwd`\"))")
    cat > setup.sh << EOF
    if [ -n "\$BASH_SOURCE" ]; then
       THIS_SCRIPT=\$BASH_SOURCE
